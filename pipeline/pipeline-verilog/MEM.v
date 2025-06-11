@@ -28,7 +28,6 @@ module MEM(
     assign mem_data_out = data_memory_output;
     assign rd_data_out = rd_data;
     assign mem_write_out = mem_write;
-
     DataMemory data_mem (
         .clk(clk),
         .reset(reset),

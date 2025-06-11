@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module DataMemory(
     input clk,
     input reset,
@@ -12,7 +13,7 @@ module DataMemory(
 
     // 初始化 memory 内容
     initial begin
-        memory[0] = 32'h00000000;
+        #50 memory[0] = 32'h00000000;
         memory[1] = 32'h00000001;
         memory[2] = 32'h00000002;
         memory[3] = 32'h00000003;

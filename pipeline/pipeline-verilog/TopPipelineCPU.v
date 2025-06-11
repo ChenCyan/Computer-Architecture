@@ -5,17 +5,15 @@ module PipelinedCPU(
 
 // PC相关信号
 wire [31:0] pc_current;
-reg [31:0] pc_next;
+wire [31:0] pc_next;
 wire beq_taken;
 wire [31:0] branch_imm;
 
 // IF阶段
 wire [31:0] instruction;
 
-// 寄存器堆接口
-wire [4:0] rs = instruction[25:21];
-wire [4:0] rt = instruction[20:16];
-wire [4:0] rd = instruction[15:11];
+//IF2ID阶段
+wire  [31:0]if2id_instruction;
 
 // 寄存器堆读数据
 wire [31:0] rs_data;
@@ -33,7 +31,9 @@ wire id_mem_write;
 wire id_mem_read;
 wire id_reg_write;
 wire id_beq_taken;
-
+wire [4:0]id_rs;
+wire [4:0]id_rt;
+wire [4:0]id_rd;
 // ID2EX寄存器输出信号
 wire [31:0] ex_rs_data;
 wire [31:0] ex_rt_data;
@@ -90,20 +90,29 @@ PC pc_module (
     .pc_out(pc_current)
 );
 
-// IF阶段指令存储器（你自己实现或替换）
-InstructionMemory imem (
+IF if_stage (
+    .clk(clk),
+    .reset(reset),
     .pc(pc_current),
-    .instruction(instruction)
+    .instruction(instruction),
+    .next_pc(pc_next)
+);
+
+IF2ID_register if2id (
+    .clk(clk),
+    .reset(reset),
+    .instruction_in(instruction),
+    .instruction_out(if2id_instruction)
 );
 
 // 寄存器堆实例化
 register_file regfile (
     .clk(clk),
     .reset(reset),
-    .rs1(rs),
-    .rs2(rt),
-    .rd(rd_wb),
-    .reg_write_enable(reg_write_enable_wb),
+    .rs1(id_rs),
+    .rs2(id_rt),
+    .rd(id_rd),
+    .reg_write_enable(wb_reg_write_out),
     .write_data(write_data_wb),
     .read_data1(rs_data),
     .read_data2(rt_data),
@@ -114,11 +123,15 @@ register_file regfile (
 ID id_stage (
     .clk(clk),
     .reset(reset),
-    .instruction(instruction),
+    .instruction(if2id_instruction),
     .rs_data(rs_data),
     .rt_data(rt_data),
     .rd_data(rd_data),
     .rd_out(id_rd_out),
+
+    .rs(id_rs),
+    .rt(id_rt),
+    .rd(id_rd),
     .imm(id_imm),
     .opcode(id_opcode),
     .rs_data_temp(id_rs_data),
@@ -130,17 +143,7 @@ ID id_stage (
     .beq_taken(id_beq_taken)
 );
 
-// PC_next逻辑，根据是否分支决定PC下一值
-always @(*) begin
-    if (id_beq_taken) begin
-        // PC跳转 = 当前PC + 分支立即数（你可以根据实际指令修改此逻辑）
-        pc_next = pc_current + (id_imm << 2); // 左移2表示字地址转换
-    end else begin
-        pc_next = pc_current + 4; // 默认顺序执行
-    end
-end
 
-assign branch_imm = (id_imm << 2); // 传给PC模块，供计算
 
 // ID2EX寄存器实例化
 ID2EX_register id2ex (
@@ -177,13 +180,13 @@ EX ex_stage (
     .rd(ex_rd_out),
     .opcode(ex_opcode),
     .mem_read(ex_mem_read),
-    .mem_wtire(ex_mem_write), // 注意你之前拼写为mem_wtire，这里保持一致
+    .mem_write(ex_mem_write), // 注意你之前拼写为mem_wtire，这里保持一致
     .reg_write(ex_reg_write),
     .alu_result(ex_alu_result),
     .opcode_out(ex_opcode_out),
     .rd_out(ex_rd_out_out),
     .mem_read_out(ex_mem_read_out),
-    .mem_wtire_out(ex_mem_write_out),
+    .mem_write_out(ex_mem_write_out),
     .rd_data_out(ex_rd_data_out),
     .reg_write_out(ex_reg_write_out)
 );
@@ -232,7 +235,7 @@ MEM mem_stage (
     .reg_write_out(mem_reg_write_out_wb),
     .alu_result_out(mem_alu_result_out_wb),
     .rd_out(mem_rd_out_wb),
-    .rd_out_data(mem_mem_data_out)
+    .mem_data_out(mem_mem_data_out)
 );
 
 // MEM2WB寄存器实例化

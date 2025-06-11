@@ -6,6 +6,9 @@ module ID (
     input wire [31:0] rt_data,
     input wire [31:0] rd_data,
 
+    output wire [4:0] rs,
+    output wire [4:0] rt,
+    output wire [4:0] rd,
     output reg [4:0] rd_out,
     output reg [31:0] imm,
     output wire [5:0] opcode,
@@ -19,9 +22,9 @@ module ID (
 );
 
     assign opcode = instruction[31:26];
-    wire [4:0] rs     = instruction[25:21];
-    wire [4:0] rt     = instruction[20:16];
-    wire [4:0] rd_w   = instruction[15:11];
+    assign rs     = instruction[25:21];
+    assign rt     = instruction[20:16];
+    assign rd   = instruction[15:11];
     wire [15:0] imm16 = instruction[15:0];
     wire [31:0] imm_ext = {{16{imm16[15]}}, imm16}; // 有符号扩展
 
@@ -38,7 +41,7 @@ module ID (
         beq_taken     = 0;
         case (opcode)
             6'b000000: begin  // R-type
-                rd_out        = rd_w;
+                rd_out        = rd;
                 rs_data_temp  = rs_data;
                 rt_data_temp  = rt_data;
                 reg_write     = 1;
@@ -54,7 +57,7 @@ module ID (
                 rd_out        = rt;
                 imm           = imm_ext;
                 rs_data_temp  = rs_data;
-                rd_data_temp  = rd_data;
+                rd_data_temp  = rt_data;
                 mem_write     = 1;
             end
             6'b000100: begin  // beqz

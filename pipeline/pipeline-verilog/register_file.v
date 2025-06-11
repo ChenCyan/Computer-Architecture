@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module register_file (
     input clk,reset,
     input [4:0] rs1,rs2,rd,
@@ -8,6 +9,15 @@ module register_file (
 );
 integer i;
 reg [31:0] registers [31:0]; // 32个寄存器，每个寄存器32位
+initial begin
+        // 示例指令加载
+        #50 registers[8] = 32'h00000001;
+        registers[9] = 32'h00000002;
+        registers[10] = 32'h00000013;
+        registers[3] = 32'h00000013;
+        registers[2] = 32'h00000001;
+        // 可根据需要添加更多指令
+end
 assign read_data1 = (rs1 == 5'b0) ? 32'b0 : registers[rs1]; // 如果是$zero寄存器，返回0
 assign read_data2 = (rs2 == 5'b0) ? 32'b0 : registers[rs2]; // 如果是$zero寄存器，返回0
 assign read_data3 = (rd == 5'b0) ? 32'b0 : registers[rd]; // 如果是$zero寄存器，返回0
