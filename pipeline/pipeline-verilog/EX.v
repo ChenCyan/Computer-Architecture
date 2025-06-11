@@ -3,26 +3,47 @@ module EX(
     input reset,
     input [31:0] rs_data,
     input [31:0] rt_data,
+    input [31:0] rd_data,
     input [31:0] imm,
     input [4:0] rd,
-    input [5:0]opcode,
+    input [5:0] opcode,
+    input mem_read,
+    input mem_write,
+    input reg_write,
+    
     output reg [31:0] alu_result,
     output reg [5:0] opcode_out,
-    output reg [4:0] rd_out
+    output reg [4:0] rd_out,
+    output reg mem_read_out,
+    output reg mem_write_out,
+    output reg [31:0] rd_data_out,
+    output reg reg_write_out
 );
 
 always @(*) begin
-    opcode_out = opcode;
-    rd_out = rd;
+    // 默认赋值，防止综合 latch
+    alu_result      = 32'b0;
+    opcode_out      = opcode;
+    rd_out          = rd;
+    mem_read_out    = mem_read;
+    mem_write_out   = mem_write;
+    rd_data_out     = rd_data;
+    reg_write_out   = reg_write;
+
     case(opcode)
-        6'b 000000: alu_result = rs_data + rt_data; // ADD
-        6'b 100011: alu_result = rs_data + imm; // LW
-        6'b 101011: alu_result = rs_data + imm; // SW
-        6'b 000100: begin   
-            alu_result = (rs_data == rt_data) ? 1 : 0; // BEQ
-            rd_out = 0;
+        6'b000000: begin // ADD
+            alu_result = rs_data + rt_data;
         end
-        default: alu_result = 32'b0; // 默认情况
+        6'b100011: begin // LW
+            alu_result = rs_data + imm;
+        end
+        6'b101011: begin // SW
+            alu_result = rs_data + imm;
+        end
+        default: begin
+            alu_result = 32'b0;
+        end
     endcase
 end
+
 endmodule

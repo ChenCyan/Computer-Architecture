@@ -1,69 +1,68 @@
-module ID(
-    input clk,
-    input reset,
-    input [31:0] instruction,
-    input [31:0] rs_data,
-    input [31:0] rt_data,
-    output reg [4:0] rs_out,
+module ID (
+    input wire clk,
+    input wire reset,
+    input wire [31:0] instruction,
+    input wire [31:0] rs_data,
+    input wire [31:0] rt_data,
+    input wire [31:0] rd_data,
+
     output reg [4:0] rd_out,
-    output reg [4:0] rt_out,
     output reg [31:0] imm,
-    output reg [5:0] opcode,
+    output wire [5:0] opcode,
     output reg [31:0] rs_data_temp,
-    output reg [31:0] rt_data_temp
+    output reg [31:0] rt_data_temp,
+    output reg [31:0] rd_data_temp,
+    output reg mem_write,
+    output reg mem_read,
+    output reg reg_write,
+    output reg beq_taken
 );
-    wire [5:0] op     = instruction[31:26];
+
+    assign opcode = instruction[31:26];
     wire [4:0] rs     = instruction[25:21];
     wire [4:0] rt     = instruction[20:16];
     wire [4:0] rd_w   = instruction[15:11];
     wire [15:0] imm16 = instruction[15:0];
     wire [31:0] imm_ext = {{16{imm16[15]}}, imm16}; // 有符号扩展
-    /*register_file reg_file (
-        .clk(clk),
-        .reset(reset),
-        .rs(rs),
-        .rt(rt),
-        .rd(rd_w),
-        .reg_write_enable(1'b0), // 读取数据不需要写入
-        .write_data(32'b0), // 写入数据不重要，因为我们只读
-        .read_data1(rs_data_temp),
-        .read_data2(rt_data_temp)
-    );*/
+
     always @(*) begin
-        opcode = op;
-        rs_out = rs;
-        rt_out = rt;
-        // 根据操作码设置 rd 和 imm
-        case (op)
-            6'b000000: begin  // R-type: add
-                rd_out  = rd_w;
-                imm = 32'b0;
-                rs_data_temp = rs_data; // rs_data_temp 用于传递 rs 的数据
-                rt_data_temp = rt_data; // rt_data_temp 用于传递 rt 的数据
+        // 默认值（防止 latch）
+        rd_out        = 5'b0;
+        imm           = 32'b0;
+        rs_data_temp  = 32'b0;
+        rt_data_temp  = 32'b0;
+        rd_data_temp  = 32'b0;
+        mem_read      = 0;
+        mem_write     = 0;
+        reg_write     = 0;
+        beq_taken     = 0;
+        case (opcode)
+            6'b000000: begin  // R-type
+                rd_out        = rd_w;
+                rs_data_temp  = rs_data;
+                rt_data_temp  = rt_data;
+                reg_write     = 1;
             end
             6'b100011: begin  // lw
-                rd_out  = rt;      // rt是目的寄存器
-                imm = imm_ext;
-                rs_data_temp = rs_data; // rs_data_temp 用于传递 rs 的数据
-                rt_data_temp = 32'b0;
+                rd_out        = rt;
+                imm           = imm_ext;
+                rs_data_temp  = rs_data;
+                mem_read      = 1;
+                reg_write     = 1;
             end
             6'b101011: begin  // sw
-                rd_out  = rt;      // rt是目的寄存器
-                imm = imm_ext;
-                rs_data_temp = rs_data; // rs_data_temp 用于传递 rs 的数据
-                rt_data_temp = 32'b0;
+                rd_out        = rt;
+                imm           = imm_ext;
+                rs_data_temp  = rs_data;
+                rd_data_temp  = rd_data;
+                mem_write     = 1;
             end
-            6'b000100: begin  // beq (用 beqz 模拟 beq rs, $zero, offset)
-                rd_out  = 5'b0;
-                imm = imm_ext;
-                rs_data_temp = rs_data; // rs_data_temp 用于传递 rs 的数据
-                rt_data_temp = rt_data;
-            end
-            default: begin
-                rd_out  = 5'b0;
-                imm = 32'b0;
-                rs_data_temp = 32'b0; // 默认情况下，rs_data_temp 设置为零
-                rt_data_temp = 32'b0; // 默认情况下，rt_data_temp 设置为零
+            6'b000100: begin  // beqz
+                imm           = imm_ext;
+                rs_data_temp  = rs_data;
+                rt_data_temp  = 32'b0;
+                beq_taken     = (rs_data == 32'b0) ? 1 : 0; // 如果 rs_data 为 0，则 beq_taken 为 1
+                // 不写寄存器、不读内存
             end
         endcase
     end

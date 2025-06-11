@@ -1,23 +1,42 @@
 module EX2MEM_register (
     input clk,
     input reset,
+    
     input [31:0] alu_result_in,
     input [5:0] opcode_in,
-    input [31:0] rs2_data_in,
+    input [4:0] rd_in,
+    input mem_read,
+    input mem_write,
+    input [31:0] rd_data_in,
+    input reg_write,
+
+    output reg [4:0] rd_out,
     output reg [31:0] alu_result_out,
-    output reg [5:0] opcode_out
+    output reg [5:0] opcode_out,
+    output reg mem_read_out,
+    output reg mem_write_out,
+    output reg [31:0] rd_data_out,
+    output reg reg_write_out
 );
-always @(posedge clk or posedge reset) begin
-    if (reset) begin
-        alu_result_out <= 32'b0; // Reset ALU result to zero
-        opcode_out <= 6'b0; // Reset opcode to zero
-    end else begin
-        alu_result_out <= alu_result_in; // Pass ALU result
-        opcode_out <= opcode_in; // Pass opcode
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            alu_result_out <= 32'b0;
+            opcode_out     <= 6'b0;
+            rd_out         <= 5'b0;
+            mem_read_out   <= 1'b0;
+            mem_write_out  <= 1'b0;
+            rd_data_out    <= 32'b0;
+            reg_write_out  <= 1'b0;
+        end else begin
+            alu_result_out <= alu_result_in;
+            opcode_out     <= opcode_in;
+            rd_out         <= rd_in;
+            mem_read_out   <= mem_read;
+            mem_write_out  <= mem_write;
+            rd_data_out    <= rd_data_in;
+            reg_write_out  <= reg_write;
+        end
     end
-end
+
 endmodule
-// This module serves as a register to hold the results from the EX stage
-// and pass them to the MEM stage. It includes the ALU result, rs2 data,
-// rd value, and memory read/write signals. The reset functionality ensures
-// that all outputs are set to zero when the reset signal is high, allowing 

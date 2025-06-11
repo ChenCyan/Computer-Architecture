@@ -28,10 +28,15 @@ module DataMemory(
         end else begin
             if (mem_write_enable) begin
                 memory[address[4:2]] <= write_data; // 写入（地址对齐，按字寻址）
+                data <= 32'b0;
             end
             if (mem_read_enable) begin
                 data <= memory[address[4:2]]; // 读取
+
             end
+            if (!mem_read_enable && !mem_write_enable)begin
+            data <= 32'b0;
+        end
         end
     end
 
