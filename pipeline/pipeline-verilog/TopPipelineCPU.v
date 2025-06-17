@@ -67,7 +67,8 @@ wire mem_reg_write_out;
 wire mem_reg_write_out_wb;
 wire [31:0] mem_alu_result_out_wb;
 wire [4:0] mem_rd_out_wb;
-wire [31:0] mem_mem_data_out;
+wire [31:0] mem_mem_rd_data_out;
+wire [31:0] mem_data_read_out;
 
 // MEM2WB寄存器输出信号
 wire [31:0] wb_mem_data_out;
@@ -112,6 +113,7 @@ register_file regfile (
     .rs1(id_rs),
     .rs2(id_rt),
     .rd(id_rd),
+    .address(rd_wb),
     .reg_write_enable(wb_reg_write_out),
     .write_data(write_data_wb),
     .read_data1(rs_data),
@@ -226,23 +228,18 @@ DataMemory datamemory (
 // MEM阶段实例化
 MEM mem_stage (
     .alu_result(mem_alu_result_out),
-    .opcode(mem_opcode_out),
     .rd(mem_rd_out),
-    .rd_data(mem_rd_data_out),
-    .mem_read(mem_mem_read_out),
-    .mem_write(mem_mem_write_out),
     .reg_write(mem_reg_write_out),
     .reg_write_out(mem_reg_write_out_wb),
     .alu_result_out(mem_alu_result_out_wb),
-    .rd_out(mem_rd_out_wb),
-    .mem_data_out(mem_mem_data_out)
+    .rd_out(mem_rd_out_wb)
 );
 
 // MEM2WB寄存器实例化
 MEM2WB_register mem2wb (
     .clk(clk),
     .reset(reset),
-    .mem_data_in(mem_mem_data_out),
+    .mem_data_in(mem_data_out),
     .rd_in(mem_rd_out_wb),
     .alu_result_in(mem_alu_result_out_wb),
     .reg_write_in(mem_reg_write_out_wb),
@@ -251,6 +248,19 @@ MEM2WB_register mem2wb (
     .alu_result_out(wb_alu_result_out),
     .reg_write_out(wb_reg_write_out)
 );
+
+
+//WB wb_stage(
+//    .clk(clk),
+//    .reset(reset),
+//    .alu_result_in(mem_alu_result_out_wb),
+//    .mem_data_in(wb_mem_data_out),
+//    .rd_in(wb_rd_out),
+//    .reg_write_in(wb_reg_write_out),
+//    .rd_out(rd_wb),
+//    .rd_data_out(write_data_wb),
+//    .reg_write_out(reg_write_enable_wb)
+//);
 
 // WB阶段写入寄存器的逻辑
 assign reg_write_enable_wb = wb_reg_write_out;

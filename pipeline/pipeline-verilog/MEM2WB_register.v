@@ -6,7 +6,6 @@ module MEM2WB_register (
     input [4:0] rd_in,
     input [31:0] alu_result_in,
     input reg_write_in,
-
     output reg [31:0] mem_data_out,  // 送 WB 阶段
     output reg [4:0] rd_out,
     output reg [31:0] alu_result_out,
@@ -18,7 +17,7 @@ module MEM2WB_register (
             mem_data_out <= 32'b0;
             rd_out <= 5'b0;
             alu_result_out <= 32'b0;
-            reg_write_out <= 1'b0;
+            reg_write_out <= 1'b0;  
         end else begin
             mem_data_out <= mem_data_in;
             rd_out <= rd_in;
@@ -28,3 +27,4 @@ module MEM2WB_register (
     end
 
 endmodule
+ 

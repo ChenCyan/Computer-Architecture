@@ -10,7 +10,7 @@ module testbench();
         $dumpvars(0, testbench);
 
         clk = 0; 
-        reset = 1;
+        #10 reset = 1;
         #20 reset = 0;
         #1000 $finish; // 模拟时间结束
     end
