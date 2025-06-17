@@ -7,7 +7,6 @@ module IF (
 );
 
     wire [31:0] instruction_pc;  // 改为wire，表示由instMem输出
-
     InstructionMemory instMem (
         .pc(pc),
         .instruction(instruction_pc)

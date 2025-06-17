@@ -18,13 +18,14 @@ module ID (
     output reg mem_write,
     output reg mem_read,
     output reg reg_write,
-    output reg beq_taken
+    output reg beq_taken,
+    output reg [31:0] beq_imm
 );
 
     assign opcode = instruction[31:26];
     assign rs     = instruction[25:21];
     assign rt     = instruction[20:16];
-    assign rd   = instruction[15:11];
+    assign rd     = instruction[15:11];
     wire [15:0] imm16 = instruction[15:0];
     wire [31:0] imm_ext = {{16{imm16[15]}}, imm16}; // 有符号扩展
 
@@ -39,6 +40,7 @@ module ID (
         mem_write     = 0;
         reg_write     = 0;
         beq_taken     = 0;
+        beq_imm       = 0;
         case (opcode)
             6'b000000: begin  // R-type
                 rd_out        = rd;
@@ -61,11 +63,8 @@ module ID (
                 mem_write     = 1;
             end
             6'b000100: begin  // beqz
-                imm           = imm_ext;
-                rs_data_temp  = rs_data;
-                rt_data_temp  = 32'b0;
-                beq_taken     = (rs_data == 32'b0) ? 1 : 0; // 如果 rs_data 为 0，则 beq_taken 为 1
-                // 不写寄存器、不读内存
+                beq_taken = 1;
+                beq_imm   = imm_ext;
             end
         endcase
     end

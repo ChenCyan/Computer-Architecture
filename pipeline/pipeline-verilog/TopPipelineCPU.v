@@ -6,7 +6,6 @@ module PipelinedCPU(
 // PC相关信号
 wire [31:0] pc_current;
 wire [31:0] pc_next;
-wire beq_taken;
 wire [31:0] branch_imm;
 
 // IF阶段
@@ -87,7 +86,7 @@ PC pc_module (
     .reset(reset),
     .next_pc(pc_next),
     .beq_taken(beq_taken),
-    .branch_imm(branch_imm),
+    .branch_imm(beq_imm),
     .pc_out(pc_current)
 );
 
@@ -121,6 +120,8 @@ register_file regfile (
     .read_data3(rd_data)
 );
 
+wire beq_taken;
+wire [31:0] beq_imm;
 // ID阶段实例化
 ID id_stage (
     .clk(clk),
@@ -142,7 +143,9 @@ ID id_stage (
     .mem_write(id_mem_write),
     .mem_read(id_mem_read),
     .reg_write(id_reg_write),
-    .beq_taken(id_beq_taken)
+    .beq_taken(beq_taken),
+    .beq_imm(beq_imm)
+
 );
 
 
