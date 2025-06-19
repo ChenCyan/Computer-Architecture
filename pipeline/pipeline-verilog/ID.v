@@ -19,9 +19,9 @@ module ID (
     output reg mem_read,
     output reg reg_write,
     output reg beq_taken,
-    output reg [31:0] beq_imm
+    output reg [31:0] beq_imm,
+    output reg behind_beq_flag
 );
-
     assign opcode = instruction[31:26];
     assign rs     = instruction[25:21];
     assign rt     = instruction[20:16];
@@ -63,10 +63,32 @@ module ID (
                 mem_write     = 1;
             end
             6'b000100: begin  // beqz
-                beq_taken = 1;
-                beq_imm   = imm_ext;
+                if (rs_data == rt_data) begin
+                    beq_taken = 1;
+                    beq_imm   = imm_ext;
+                end else begin
+                    beq_taken = 0;
+                    beq_imm   = 0;
+                end
             end
         endcase
+        //if (behind_beq_flag) begin
+        //rd_out        = 5'b0;
+        //imm           = 32'b0;
+        //rs_data_temp  = 32'b0;
+        //rt_data_temp  = 32'b0;
+        //rd_data_temp  = 32'b0;
+        //mem_read      = 0;
+        //mem_write     = 0;
+        //reg_write     = 0;
+        //beq_taken     = 0;
+        //behind_beq_flag = 0;
+        //beq_imm       = 0;
+        //end
+
     end
+    //always @(posedge clk or reset) begin
+       //if (opcode == 000100) behind_beq_flag <=1;
+    //end
 
 endmodule

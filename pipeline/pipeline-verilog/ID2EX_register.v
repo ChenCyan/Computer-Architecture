@@ -10,7 +10,6 @@ module ID2EX_register (
     input mem_read,
     input mem_write,
     input reg_write,
-    
     output reg [31:0] rs_data_out,
     output reg [31:0] rt_data_out,
     output reg [31:0] rd_data_out,

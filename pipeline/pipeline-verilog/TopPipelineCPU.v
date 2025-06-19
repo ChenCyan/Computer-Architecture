@@ -101,6 +101,7 @@ IF if_stage (
 IF2ID_register if2id (
     .clk(clk),
     .reset(reset),
+    .beq_taken(beq_taken),
     .instruction_in(instruction),
     .instruction_out(if2id_instruction)
 );
