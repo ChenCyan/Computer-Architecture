@@ -132,6 +132,9 @@ ID id_stage (
     .rt_data(rt_data),
     .rd_data(rd_data),
     .rd_out(id_rd_out),
+    .ex_rd(ex_rd_out_out),
+    .ex_reg_write(ex_reg_write_out),
+    .ex_alu_result(ex_alu_result),
 
     .rs(id_rs),
     .rt(id_rt),
